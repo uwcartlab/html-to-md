@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8"/>
+
+    <title>HTML&harr;MD Converter</title>
+    <link rel ="icon" href="img/arrow.ico" type="image/x-icon">
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link href="css/style.css" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <script src="lib/FileSaver.js"></script>
+    <script src="lib/Turndown.js"></script>
+    <script src="lib/Showdown.js"></script>
+
+</head>
+
+<body>
+    <div class="col-sm-3"></div>
+    <div class="col-sm-6">
+        <h1>HTML &harr; MD Converter</h1>
+        <h3>HTML&rarr;MD</h3>
+        <div class="form-container">
+            <form action="/action_page.php">
+                <input type="file" id="mInput" class="input" name="filename">
+            </form>
+            <button id="download" onclick="downloadFile()">Convert</button>
+        </div>
+        <h3>MD&rarr;HTML</h3>
+        <div class="form-container">
+            <form action="/action_page.php">
+                <input type="file" id="hInput" class="input" name="filename">
+            </form>
+            <button id="download2" onclick="downloadFile()">Convert</button>
+        </div>
+        <p>Created with <a href="https://github.com/domchristie/turndown" target="_blank">Turndown</a>, <a href="https://github.com/showdownjs/showdown" target="_blank">Showdown</a>, and <a href="https://github.com/eligrey/FileSaver.js/" target="_blank">FileSaver</a>.</p>
+    </div>
+
+<script>
+    ////////to MD////////////
+    var markdown;
+    var turndownService = new TurndownService({emDelimeter:'*', bulletListMarker:'-'});
+
+    //keep underline style//////
+    turndownService.keep(['ins']);
+
+    turndownService.addRule('underline', {
+        filter: function(node, options){
+            return(
+                node.nodeName === 'SPAN' &&
+                node.style.textDecoration === 'underline'
+            )
+        },
+        replacement: function (content) {
+            return '<ins>' + content + '</ins>'
+        }
+    })
+    
+    //html - md input listener
+    const mInput = document.getElementById("mInput");
+    mInput.addEventListener("change", handleHtml, false);
+    
+    function handleHtml(event) {
+        //check uploaded file
+        var file = event.target.files[0];
+        var reader = new FileReader();
+        
+        reader.readAsText(file);
+        reader.onload=function(){
+            //convert uploaded html file to md
+            markdown = turndownService.turndown(reader.result);
+        }
+    }
+
+    ////////to html////////////    
+    var html;
+    var converter = new showdown.Converter();
+    
+    //md - html input listener
+    const hInput = document.getElementById("hInput");
+    hInput.addEventListener("change", handleMd, false);
+
+    function handleMd() {
+        //check uploaded file
+        var file = event.target.files[0];
+        var reader = new FileReader();
+
+        reader.readAsText(file);
+        reader.onload=function(){
+            //convert uploaded md file to html
+            html = converter.makeHtml(reader.result);
+        }
+    }
+
+    ////////file download////////////   
+    function downloadFile(type){
+        if (markdown){
+            var saveFile = new File([markdown], "markdown.md", {});
+            saveAs(saveFile);
+            markdown = null;
+            mInput.value = "";
+        }
+        else if (html){
+            var saveFile = new File([html], "file.html", {});
+            saveAs(saveFile);
+            html = null;
+            hInput.value = "";
+        }
+        else
+            alert("No File Selected!");
+    }
+
+    mInput.value = "";
+    hInput.value = "";
+    
+</script>
+
+</body>
+
+</html>
